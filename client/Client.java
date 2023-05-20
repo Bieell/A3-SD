@@ -18,10 +18,13 @@ import javax.swing.JOptionPane;
 public class Client extends javax.swing.JFrame {
 
     private JButton buttons[];
-    private char[] marks = {'X', 'O'};
-    private final static int PLAYER_X = 0; 
+    private String[] marks = {"X", "O"};
+    private final static int PLAYER_X = 0;
     private final static int PLAYER_O = 1;
     private int currentPlayer;
+    private int playerXWins = 0;
+    private int playerOWins = 0;
+
     public Client() {
         initComponents();
         buttons = getButtons();
@@ -50,12 +53,13 @@ public class Client extends javax.swing.JFrame {
         jPanel1 = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
-        jLabel4 = new javax.swing.JLabel();
-        jLabel5 = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
+        labelPxWins = new javax.swing.JLabel();
+        labelPoWins = new javax.swing.JLabel();
         btnRst = new javax.swing.JButton();
         btnExit = new javax.swing.JButton();
         labelCurrentPlayer = new javax.swing.JLabel();
+        btnNewGame = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Jogo da Velha");
@@ -94,23 +98,28 @@ public class Client extends javax.swing.JFrame {
 
         btn9.setFont(new java.awt.Font("Segoe UI", 1, 48)); // NOI18N
         btn9.setFocusable(false);
+        btn9.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn9ActionPerformed(evt);
+            }
+        });
 
         jPanel1.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.RAISED, java.awt.Color.lightGray, java.awt.Color.darkGray));
 
         jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jLabel2.setText("Jogador X:");
+        jLabel2.setText("Jogador 'X':");
 
         jLabel3.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jLabel3.setText("Jogador O:");
-
-        jLabel4.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jLabel4.setText("xxxxx");
-
-        jLabel5.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jLabel5.setText("ooooo");
+        jLabel3.setText("Jogador 'O':");
 
         jLabel7.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         jLabel7.setText("VITÓRIAS");
+
+        labelPxWins.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        labelPxWins.setText("0");
+
+        labelPoWins.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        labelPoWins.setText("0");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -120,17 +129,18 @@ public class Client extends javax.swing.JFrame {
                 .addGap(30, 30, 30)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jLabel2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel4))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jLabel3)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel5))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(63, 63, 63)
-                        .addComponent(jLabel7)))
-                .addContainerGap(79, Short.MAX_VALUE))
+                        .addComponent(jLabel7))
+                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel1Layout.createSequentialGroup()
+                            .addComponent(jLabel2)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(labelPxWins))
+                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel1Layout.createSequentialGroup()
+                            .addComponent(jLabel3)
+                            .addGap(18, 18, 18)
+                            .addComponent(labelPoWins))))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -140,11 +150,11 @@ public class Client extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
-                    .addComponent(jLabel4))
+                    .addComponent(labelPxWins))
                 .addGap(12, 12, 12)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3)
-                    .addComponent(jLabel5))
+                    .addComponent(labelPoWins))
                 .addGap(21, 21, 21))
         );
 
@@ -171,8 +181,16 @@ public class Client extends javax.swing.JFrame {
 
         labelCurrentPlayer.setFont(new java.awt.Font("Segoe UI", 1, 22)); // NOI18N
         labelCurrentPlayer.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        labelCurrentPlayer.setText("teste");
         labelCurrentPlayer.setToolTipText("");
+
+        btnNewGame.setBackground(new java.awt.Color(51, 204, 255));
+        btnNewGame.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnNewGame.setText("NOVO JOGO");
+        btnNewGame.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnNewGameActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -202,18 +220,19 @@ public class Client extends javax.swing.JFrame {
                         .addComponent(btn6, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(32, 32, 32)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                        .addGap(18, 18, 18)
+                        .addComponent(labelCurrentPlayer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(41, 41, 41)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(btnRst, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(18, 18, 18)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 27, Short.MAX_VALUE)
                                 .addComponent(btnExit, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addContainerGap(39, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(18, 18, 18)
-                        .addComponent(labelCurrentPlayer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addContainerGap())))
+                            .addComponent(btnNewGame, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(0, 24, Short.MAX_VALUE)))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -236,18 +255,18 @@ public class Client extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(btn7, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(btn8, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(btn9, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(40, 40, 40))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(btnNewGame, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(btnRst, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(btnExit, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(58, 58, 58))))
+                            .addComponent(btnExit, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(btn7, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(btn8, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(btn9, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(40, 40, 40))
         );
 
         pack();
@@ -255,9 +274,9 @@ public class Client extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnExitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnExitActionPerformed
-        Object[] options = { "Sim", "Não" }; 
+        Object[] options = {"Sim", "Não"};
         int option = JOptionPane.showOptionDialog(null, "Realmente deseja sair da partida?", "Alerta", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-        if(option == 0) {
+        if (option == 0) {
             System.exit(0);
         }
     }//GEN-LAST:event_btnExitActionPerformed
@@ -265,7 +284,15 @@ public class Client extends javax.swing.JFrame {
     private void btnRstActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRstActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_btnRstActionPerformed
-    
+
+    private void btn9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn9ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btn9ActionPerformed
+
+    private void btnNewGameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNewGameActionPerformed
+        restoreButtons();
+    }//GEN-LAST:event_btnNewGameActionPerformed
+
     private JButton[] getButtons() {
         buttons = new JButton[9];
         buttons[0] = btn1;
@@ -279,43 +306,155 @@ public class Client extends javax.swing.JFrame {
         buttons[8] = btn9;
         return buttons;
     }
-    
-    public void execute() {
+
+    private void execute() {
         currentPlayer = PLAYER_X;
-        labelCurrentPlayer.setText("VEZ DO JOGADOR X");
+        labelCurrentPlayer.setText("VEZ DO JOGADOR 'X'");
+
         for (JButton button : buttons) {
             button.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    
-                    if(currentPlayer == PLAYER_X) {
-                        button.setText("X");
-                        button.setForeground(Color.blue);
-                        currentPlayer = PLAYER_O;
-                        labelCurrentPlayer.setText("VEZ DO JOGADOR O");
-                        
-                    } else if(currentPlayer == PLAYER_O) {
-                        button.setText("O");
-                        button.setForeground(Color.ORANGE);
-                        currentPlayer = PLAYER_X;
-                        labelCurrentPlayer.setText("VEZ DO JOGADOR X");
-                        
+                    if (currentPlayer == PLAYER_X) {
+                        if (button.getText().equals("")) {
+                            button.setText("X");
+                            button.setForeground(Color.blue);
+                            currentPlayer = PLAYER_O;
+                            labelCurrentPlayer.setText("VEZ DO JOGADOR 'O'");
+                            checkWin();
+                        }
+                    } else if (currentPlayer == PLAYER_O) {
+                        if (button.getText().equals("")) {
+                            button.setText("O");
+                            button.setForeground(Color.ORANGE);
+                            currentPlayer = PLAYER_X;
+                            labelCurrentPlayer.setText("VEZ DO JOGADOR 'X'");
+                            checkWin();
+                        }
                     }
                 }
             });
         }
     }
+
+    private boolean checkWin() {
+        JButton[][] board = new JButton[3][3];
+        int k = 0;
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                board[i][j] = buttons[k];
+                k++;
+            }
+        }
+
+        // Verificar linhas
+        for (int linha = 0; linha < 3; linha++) {
+            if (!board[linha][0].getText().equals("")
+                    && board[linha][0].getText().equals(board[linha][1].getText())
+                    && board[linha][0].getText().equals(board[linha][2].getText())) {
+                JButton[] winButtons = new JButton[3];
+                winButtons[0] = board[linha][0];
+                winButtons[1] = board[linha][1];
+                winButtons[2] = board[linha][2];
+                checkWinner(winButtons);
+                return true;
+            }
+        }
+
+        // Verificar colunas
+        for (int coluna = 0; coluna < 3; coluna++) {
+            if (!board[0][coluna].getText().equals("")
+                    && board[0][coluna].getText().equals(board[1][coluna].getText())
+                    && board[0][coluna].getText().equals(board[2][coluna].getText())) {
+                JButton[] winButtons = new JButton[3];
+                winButtons[0] = board[0][coluna];
+                winButtons[1] = board[1][coluna];
+                winButtons[2] = board[2][coluna];
+                checkWinner(winButtons);
+                return true;
+            }
+        }
+
+        // Verificar diagonais
+        if (!board[0][0].getText().equals("")
+                && board[0][0].getText().equals(board[1][1].getText())
+                && board[0][0].getText().equals(board[2][2].getText())) {
+            JButton[] winButtons = new JButton[3];
+            winButtons[0] = board[0][0];
+            winButtons[1] = board[1][1];
+            winButtons[2] = board[2][2];
+            checkWinner(winButtons);
+            return true;
+        }
+
+        if (!board[0][2].getText().equals("")
+                && board[0][2].getText().equals(board[1][1].getText())
+                && board[0][2].getText().equals(board[2][0].getText())) {
+            JButton[] winButtons = new JButton[3];
+            winButtons[0] = board[0][2];
+            winButtons[1] = board[1][1];
+            winButtons[2] = board[2][0];
+            checkWinner(winButtons);
+            return true;
+        }
+
+        return false; // Não há vitória
+
+    }
+
+    public void checkWinner(JButton winButtons[]) {
+        disableButtons();
+        String markString = winButtons[0].getText();
+        if (markString.equals(marks[0])) {
+            labelCurrentPlayer.setText("O JOGADOR 'X' VENCEU");
+            playerXWins += 1;
+            setWin();
+        } else if (markString.equals(marks[1])) {
+            labelCurrentPlayer.setText("O JOGADOR 'O' VENCEU");
+            playerOWins += 1;
+            setWin();
+        }
+        for (JButton button : winButtons) {
+            button.setEnabled(true);
+            button.setBackground(Color.GREEN);
+        }
+    }
+
+    private void disableButtons() {
+        for (JButton button : buttons) {
+            button.setEnabled(false);
+        }
+    }
+
+    private void enableButtons() {
+        for (JButton button : buttons) {
+            button.setEnabled(true);
+        }
+    }
     
-    public boolean boardFilledUp() {
+    private void restoreButtons() {
+        enableButtons();
+        for(JButton button : buttons) {
+            button.setText("");
+            button.setBackground(new JButton().getBackground());
+        }
+    }
+
+    private void setWin() {
+        labelPxWins.setText(Integer.toString(playerXWins));
+        labelPoWins.setText(Integer.toString(playerOWins));
+
+    }
+
+    private boolean boardFilledUp() {
         for (int i = 0; i < buttons.length; ++i) {
             if (buttons[i].getText().isEmpty()) {
                 return false;
             }
         }
-
         return true;
     }
-    
+
     /**
      * @param args the command line arguments
      */
@@ -362,14 +501,15 @@ public class Client extends javax.swing.JFrame {
     private javax.swing.JButton btn8;
     private javax.swing.JButton btn9;
     private javax.swing.JButton btnExit;
+    private javax.swing.JButton btnNewGame;
     private javax.swing.JButton btnRst;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JLabel labelCurrentPlayer;
+    private javax.swing.JLabel labelPoWins;
+    private javax.swing.JLabel labelPxWins;
     // End of variables declaration//GEN-END:variables
 }
