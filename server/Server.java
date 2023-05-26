@@ -8,6 +8,6 @@ package server;
  *
  * @author GabrielAlves
  */
-public class Sever {
+public class Server {
     
 }

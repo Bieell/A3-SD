@@ -7,7 +7,6 @@ package client;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import static java.lang.Math.random;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
 
@@ -66,7 +65,7 @@ public class Client extends javax.swing.JFrame {
         setResizable(false);
 
         jLabel1.setBackground(new java.awt.Color(153, 0, 153));
-        jLabel1.setFont(new java.awt.Font("Ink Free", 1, 48)); // NOI18N
+        jLabel1.setFont(new java.awt.Font("Jokerman", 1, 48)); // NOI18N
         jLabel1.setForeground(new java.awt.Color(102, 255, 0));
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel1.setText("Jogo da Velha");
@@ -321,7 +320,7 @@ public class Client extends javax.swing.JFrame {
                             button.setForeground(Color.blue);
                             currentPlayer = PLAYER_O;
                             labelCurrentPlayer.setText("VEZ DO JOGADOR 'O'");
-                            checkWin();
+                            isWon();
                         }
                     } else if (currentPlayer == PLAYER_O) {
                         if (button.getText().equals("")) {
@@ -329,7 +328,7 @@ public class Client extends javax.swing.JFrame {
                             button.setForeground(Color.ORANGE);
                             currentPlayer = PLAYER_X;
                             labelCurrentPlayer.setText("VEZ DO JOGADOR 'X'");
-                            checkWin();
+                            isWon();
                         }
                     }
                 }
@@ -337,7 +336,7 @@ public class Client extends javax.swing.JFrame {
         }
     }
 
-    private boolean checkWin() {
+    private boolean isWon() {
         JButton[][] board = new JButton[3][3];
         int k = 0;
         for (int i = 0; i < 3; i++) {
