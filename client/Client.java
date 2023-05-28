@@ -335,6 +335,7 @@ public class Client extends javax.swing.JFrame implements Runnable {
     @Override
     public void run() {
         try {
+            disableButtons();
             player = fromServer.readInt();
             
             if(player == PLAYER_X) {
@@ -345,6 +346,7 @@ public class Client extends javax.swing.JFrame implements Runnable {
                 if(fromServer.readInt() == 0) {
                     labelStatus.setText("Sua vez! Faça a jogada...");
                     myTurn = true;
+                    enableButtons();
                 }
                 
             } else if (player == PLAYER_O) {
