@@ -13,9 +13,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -35,6 +33,9 @@ public class Server {
     private Socket playerOne;
     private Socket playerTwo;
 
+    private final static int PLAYER_X = 0;
+    private final static int PLAYER_O = 1;
+
     private String[] buttons;
     private String[][] board;
 
@@ -45,7 +46,7 @@ public class Server {
         init();
     }
 
-    public void init() {
+    private void init() {
         serverLog = new JFrame();
         textArea = new JTextArea();
         scrollPane = new JScrollPane(textArea);
@@ -64,21 +65,27 @@ public class Server {
 
     public void playerConnection() {
         try {
+
             logTime = formatCurrentTime();
             serverSocket = new ServerSocket(8000);
             textArea.append(logTime + ":       Server iniciado na porta 8000.\n");
-            textArea.append(logTime + ":       Aguardando conexão dos Jogadores.\n");
-            socketPlayerOne = serverSocket.accept();
-            textArea.append(logTime + ":       Jogador 1 conectado!\n");
-            socketPlayerTwo = serverSocket.accept();
-            textArea.append(logTime + ":       Jogador 2 conectado!\n");
+            while (true) {
+                textArea.append(logTime + ":       Aguardando conexão dos Jogadores.\n");
+                socketPlayerOne = serverSocket.accept();
+                textArea.append(logTime + ":       Jogador 1 conectado!\n");
+                new DataOutputStream(socketPlayerOne.getOutputStream()).writeInt(PLAYER_X);
 
-            int sessionNum = 1;
-            
-            textArea.append(logTime + ":       Iniciando thread para sessão:  " + sessionNum++ + "...\n");
-            NewGameSession session = new NewGameSession(socketPlayerOne, socketPlayerTwo);
-            Thread t1 = new Thread(session);
-            t1.start();
+                socketPlayerTwo = serverSocket.accept();
+                textArea.append(logTime + ":       Jogador 2 conectado!\n");
+                new DataOutputStream(socketPlayerTwo.getOutputStream()).writeInt(PLAYER_O);
+
+                int sessionNum = 1;
+
+                textArea.append(logTime + ":       Iniciando thread para sessão:  " + sessionNum++ + "...\n");
+                NewGameSession session = new NewGameSession(socketPlayerOne, socketPlayerTwo);
+                Thread t = new Thread(session);
+                t.start();
+            }
 
         } catch (IOException e) {
             e.printStackTrace();

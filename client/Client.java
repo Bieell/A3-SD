@@ -24,10 +24,15 @@ import javax.swing.JOptionPane;
  */
 public class Client extends javax.swing.JFrame implements Runnable {
 
-    private String[] marks = {"X", "O"};
+//    private String[] marks = {"X", "O"};
+    private String myToken = "", otherToken = "";
+
     private final static int PLAYER_X = 0;
     private final static int PLAYER_O = 1;
+    private int player;
     private int currentPlayer;
+    private boolean myTurn = false;
+
     private int playerXWins = 0;
     private int playerOWins = 0;
 
@@ -43,7 +48,7 @@ public class Client extends javax.swing.JFrame implements Runnable {
         initComponents();
         buttons = getButtons();
         execute();
-        
+
     }
 
     /**
@@ -73,8 +78,9 @@ public class Client extends javax.swing.JFrame implements Runnable {
         labelPoWins = new javax.swing.JLabel();
         btnRst = new javax.swing.JButton();
         btnExit = new javax.swing.JButton();
-        labelCurrentPlayer = new javax.swing.JLabel();
+        labelTitle = new javax.swing.JLabel();
         btnNewGame = new javax.swing.JButton();
+        labelStatus = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Jogo da Velha");
@@ -150,7 +156,7 @@ public class Client extends javax.swing.JFrame implements Runnable {
                             .addComponent(jLabel3)
                             .addGap(18, 18, 18)
                             .addComponent(labelPoWins))))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(86, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -189,9 +195,9 @@ public class Client extends javax.swing.JFrame implements Runnable {
             }
         });
 
-        labelCurrentPlayer.setFont(new java.awt.Font("Segoe UI", 1, 22)); // NOI18N
-        labelCurrentPlayer.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        labelCurrentPlayer.setToolTipText("");
+        labelTitle.setFont(new java.awt.Font("Segoe UI", 1, 22)); // NOI18N
+        labelTitle.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        labelTitle.setToolTipText("");
 
         btnNewGame.setBackground(new java.awt.Color(51, 204, 255));
         btnNewGame.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
@@ -201,6 +207,10 @@ public class Client extends javax.swing.JFrame implements Runnable {
                 btnNewGameActionPerformed(evt);
             }
         });
+
+        labelStatus.setFont(new java.awt.Font("Segoe UI", 1, 22)); // NOI18N
+        labelStatus.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        labelStatus.setToolTipText("");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -230,25 +240,32 @@ public class Client extends javax.swing.JFrame implements Runnable {
                         .addComponent(btn6, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(18, 18, 18)
-                        .addComponent(labelCurrentPlayer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(41, 41, 41)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGap(60, 60, 60)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(btnRst, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 27, Short.MAX_VALUE)
+                                .addGap(27, 27, 27)
                                 .addComponent(btnExit, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(btnNewGame, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addGap(0, 24, Short.MAX_VALUE)))
-                .addContainerGap())
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(btnNewGame, javax.swing.GroupLayout.PREFERRED_SIZE, 267, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 12, Short.MAX_VALUE)
+                        .addComponent(labelStatus, javax.swing.GroupLayout.PREFERRED_SIZE, 370, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap())))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(labelTitle, javax.swing.GroupLayout.PREFERRED_SIZE, 453, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(123, 123, 123))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 50, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 34, Short.MAX_VALUE)
+                .addComponent(labelTitle, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -261,8 +278,8 @@ public class Client extends javax.swing.JFrame implements Runnable {
                             .addComponent(btn5, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(btn6, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(labelCurrentPlayer, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(labelStatus, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
                         .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
@@ -315,41 +332,62 @@ public class Client extends javax.swing.JFrame implements Runnable {
         return buttons;
     }
 
-    private void execute() {
-        connect();
-
-        for (JButton button : buttons) {
-            button.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    if (currentPlayer == PLAYER_X) {
-                        if (button.getText().equals("")) {
-                            button.setText("X");
-                            button.setForeground(Color.blue);
-                            currentPlayer = PLAYER_O;
-                            labelCurrentPlayer.setText("VEZ DO JOGADOR 'O'");
-
-                        }
-                    } else if (currentPlayer == PLAYER_O) {
-                        if (button.getText().equals("")) {
-                            button.setText("O");
-                            button.setForeground(Color.ORANGE);
-                            currentPlayer = PLAYER_X;
-                            labelCurrentPlayer.setText("VEZ DO JOGADOR 'X'");
-
-                        }
-                    }
-                }
-            });
-        }
-    }
-    
     @Override
     public void run() {
-        
+        try {
+            player = fromServer.readInt();
+            
+            if(player == PLAYER_X) {
+                myToken = "X";
+                otherToken = "O";
+                labelStatus.setText("Esperando outro jogador...");
+                labelTitle.setText("VOCE É O JOGADOR " + "'" + myToken + "'");
+                if(fromServer.readInt() == 0) {
+                    labelStatus.setText("Sua vez! Faça a jogada...");
+                    myTurn = true;
+                }
+                
+            } else if (player == PLAYER_O) {
+                myToken = "O";
+                otherToken = "X";
+                labelStatus.setText("Esperando jogada...");
+                labelTitle.setText("VOCE É O JOGADOR " + "'" + myToken + "'");
+            }
+
+//            for (JButton button : buttons) {
+//                button.addActionListener(new ActionListener() {
+//                    @Override
+//                    public void actionPerformed(ActionEvent e) {
+//                        if (myTurn) {
+//                            enableButtons();
+//                            if (button.getText().equals("")) {
+//                                button.setText("X");
+//                                button.setForeground(Color.blue);
+//                                currentPlayer = PLAYER_O;
+//                                labelCurrentPlayer.setText("VEZ DO JOGADOR 'O'");
+//
+//                            }
+//                        } else if (!myTurn) {
+//                            disableButtons();
+//                            if (button.getText().equals("")) {
+//                                button.setText("O");
+//                                button.setForeground(Color.ORANGE);
+//                                currentPlayer = PLAYER_X;
+//                                labelCurrentPlayer.setText("VEZ DO JOGADOR 'X'");
+//
+//                            }
+//                        }
+//                    }
+//                });
+//            }
+
+        } catch (IOException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
     }
 
-    private void connect() {
+    private void execute() {
 
         try {
             socket = new Socket("localhost", 8000);
@@ -358,7 +396,7 @@ public class Client extends javax.swing.JFrame implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        
+
         Thread thread = new Thread(this);
         thread.start();
     }
@@ -485,35 +523,7 @@ public class Client extends javax.swing.JFrame implements Runnable {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(Client.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(Client.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(Client.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(Client.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new Client().setVisible(true);
-            }
-        });
+        new Client().setVisible(true);
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -534,9 +544,10 @@ public class Client extends javax.swing.JFrame implements Runnable {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JLabel labelCurrentPlayer;
     private javax.swing.JLabel labelPoWins;
     private javax.swing.JLabel labelPxWins;
+    private javax.swing.JLabel labelStatus;
+    private javax.swing.JLabel labelTitle;
     // End of variables declaration//GEN-END:variables
 
 }
