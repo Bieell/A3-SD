@@ -7,6 +7,14 @@ package client;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
 
@@ -14,9 +22,8 @@ import javax.swing.JOptionPane;
  *
  * @author gabri
  */
-public class Client extends javax.swing.JFrame {
+public class Client extends javax.swing.JFrame implements Runnable {
 
-    private JButton buttons[];
     private String[] marks = {"X", "O"};
     private final static int PLAYER_X = 0;
     private final static int PLAYER_O = 1;
@@ -24,10 +31,19 @@ public class Client extends javax.swing.JFrame {
     private int playerXWins = 0;
     private int playerOWins = 0;
 
+    private JButton buttons[];
+    private JButton[] winButtons;
+    private JButton[][] board;
+
+    private Socket socket;
+    private DataInputStream fromServer;
+    private DataOutputStream toServer;
+
     public Client() {
         initComponents();
         buttons = getButtons();
         execute();
+        
     }
 
     /**
@@ -97,11 +113,6 @@ public class Client extends javax.swing.JFrame {
 
         btn9.setFont(new java.awt.Font("Segoe UI", 1, 48)); // NOI18N
         btn9.setFocusable(false);
-        btn9.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btn9ActionPerformed(evt);
-            }
-        });
 
         jPanel1.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.RAISED, java.awt.Color.lightGray, java.awt.Color.darkGray));
 
@@ -281,15 +292,13 @@ public class Client extends javax.swing.JFrame {
     }//GEN-LAST:event_btnExitActionPerformed
 
     private void btnRstActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRstActionPerformed
-        // TODO add your handling code here:
+        playerXWins = 0;
+        playerOWins = 0;
+        setWins();
     }//GEN-LAST:event_btnRstActionPerformed
 
-    private void btn9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn9ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_btn9ActionPerformed
-
     private void btnNewGameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNewGameActionPerformed
-        restoreButtons();
+
     }//GEN-LAST:event_btnNewGameActionPerformed
 
     private JButton[] getButtons() {
@@ -307,8 +316,7 @@ public class Client extends javax.swing.JFrame {
     }
 
     private void execute() {
-        currentPlayer = PLAYER_X;
-        labelCurrentPlayer.setText("VEZ DO JOGADOR 'X'");
+        connect();
 
         for (JButton button : buttons) {
             button.addActionListener(new ActionListener() {
@@ -320,7 +328,7 @@ public class Client extends javax.swing.JFrame {
                             button.setForeground(Color.blue);
                             currentPlayer = PLAYER_O;
                             labelCurrentPlayer.setText("VEZ DO JOGADOR 'O'");
-                            isWon();
+
                         }
                     } else if (currentPlayer == PLAYER_O) {
                         if (button.getText().equals("")) {
@@ -328,97 +336,116 @@ public class Client extends javax.swing.JFrame {
                             button.setForeground(Color.ORANGE);
                             currentPlayer = PLAYER_X;
                             labelCurrentPlayer.setText("VEZ DO JOGADOR 'X'");
-                            isWon();
+
                         }
                     }
                 }
             });
         }
     }
-
-    private boolean isWon() {
-        JButton[][] board = new JButton[3][3];
-        int k = 0;
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                board[i][j] = buttons[k];
-                k++;
-            }
-        }
-
-        // Verificar linhas
-        for (int linha = 0; linha < 3; linha++) {
-            if (!board[linha][0].getText().equals("")
-                    && board[linha][0].getText().equals(board[linha][1].getText())
-                    && board[linha][0].getText().equals(board[linha][2].getText())) {
-                JButton[] winButtons = new JButton[3];
-                winButtons[0] = board[linha][0];
-                winButtons[1] = board[linha][1];
-                winButtons[2] = board[linha][2];
-                checkWinner(winButtons);
-                return true;
-            }
-        }
-
-        // Verificar colunas
-        for (int coluna = 0; coluna < 3; coluna++) {
-            if (!board[0][coluna].getText().equals("")
-                    && board[0][coluna].getText().equals(board[1][coluna].getText())
-                    && board[0][coluna].getText().equals(board[2][coluna].getText())) {
-                JButton[] winButtons = new JButton[3];
-                winButtons[0] = board[0][coluna];
-                winButtons[1] = board[1][coluna];
-                winButtons[2] = board[2][coluna];
-                checkWinner(winButtons);
-                return true;
-            }
-        }
-
-        // Verificar diagonais
-        if (!board[0][0].getText().equals("")
-                && board[0][0].getText().equals(board[1][1].getText())
-                && board[0][0].getText().equals(board[2][2].getText())) {
-            JButton[] winButtons = new JButton[3];
-            winButtons[0] = board[0][0];
-            winButtons[1] = board[1][1];
-            winButtons[2] = board[2][2];
-            checkWinner(winButtons);
-            return true;
-        }
-
-        if (!board[0][2].getText().equals("")
-                && board[0][2].getText().equals(board[1][1].getText())
-                && board[0][2].getText().equals(board[2][0].getText())) {
-            JButton[] winButtons = new JButton[3];
-            winButtons[0] = board[0][2];
-            winButtons[1] = board[1][1];
-            winButtons[2] = board[2][0];
-            checkWinner(winButtons);
-            return true;
-        }
-
-        return false; // Não há vitória
-
+    
+    @Override
+    public void run() {
+        
     }
 
-    public void checkWinner(JButton winButtons[]) {
-        disableButtons();
-        String markString = winButtons[0].getText();
-        if (markString.equals(marks[0])) {
-            labelCurrentPlayer.setText("O JOGADOR 'X' VENCEU");
-            playerXWins += 1;
-            setWin();
-        } else if (markString.equals(marks[1])) {
-            labelCurrentPlayer.setText("O JOGADOR 'O' VENCEU");
-            playerOWins += 1;
-            setWin();
+    private void connect() {
+
+        try {
+            socket = new Socket("localhost", 8000);
+            fromServer = new DataInputStream(socket.getInputStream());
+            toServer = new DataOutputStream(socket.getOutputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        for (JButton button : winButtons) {
-            button.setEnabled(true);
-            button.setBackground(Color.GREEN);
-        }
+        
+        Thread thread = new Thread(this);
+        thread.start();
     }
 
+//    private boolean isWon() {
+//        board = new JButton[3][3];
+//        int k = 0;
+//        for (int i = 0; i < 3; i++) {
+//            for (int j = 0; j < 3; j++) {
+//                board[i][j] = buttons[k];
+//                k++;
+//            }
+//        }
+//
+//        // Verificar linhas
+//        for (int linha = 0; linha < 3; linha++) {
+//            if (!board[linha][0].getText().equals("")
+//                    && board[linha][0].getText().equals(board[linha][1].getText())
+//                    && board[linha][0].getText().equals(board[linha][2].getText())) {
+//                winButtons = new JButton[3];
+//                winButtons[0] = board[linha][0];
+//                winButtons[1] = board[linha][1];
+//                winButtons[2] = board[linha][2];
+//                return true;
+//            }
+//        }
+//
+//        // Verificar colunas
+//        for (int coluna = 0; coluna < 3; coluna++) {
+//            if (!board[0][coluna].getText().equals("")
+//                    && board[0][coluna].getText().equals(board[1][coluna].getText())
+//                    && board[0][coluna].getText().equals(board[2][coluna].getText())) {
+//                winButtons = new JButton[3];
+//                winButtons[0] = board[0][coluna];
+//                winButtons[1] = board[1][coluna];
+//                winButtons[2] = board[2][coluna];
+//                return true;
+//            }
+//        }
+//
+//        // Verificar diagonais
+//        if (!board[0][0].getText().equals("")
+//                && board[0][0].getText().equals(board[1][1].getText())
+//                && board[0][0].getText().equals(board[2][2].getText())) {
+//            winButtons = new JButton[3];
+//            winButtons[0] = board[0][0];
+//            winButtons[1] = board[1][1];
+//            winButtons[2] = board[2][2];
+//            return true;
+//        }
+//
+//        if (!board[0][2].getText().equals("")
+//                && board[0][2].getText().equals(board[1][1].getText())
+//                && board[0][2].getText().equals(board[2][0].getText())) {
+//            winButtons = new JButton[3];
+//            winButtons[0] = board[0][2];
+//            winButtons[1] = board[1][1];
+//            winButtons[2] = board[2][0];
+//            return true;
+//        }
+//
+//        return false; // Não há vitória
+//
+//    }
+//
+//    public void checkWinner() {
+//        if (isWon()) {
+//            disableButtons();
+//            String markString = winButtons[0].getText();
+//            if (markString.equals(marks[0])) {
+//                labelCurrentPlayer.setText("O JOGADOR 'X' VENCEU");
+//                playerXWins += 1;
+//                setWins();
+//            } else if (markString.equals(marks[1])) {
+//                labelCurrentPlayer.setText("O JOGADOR 'O' VENCEU");
+//                playerOWins += 1;
+//                setWins();
+//            }
+//            for (JButton button : winButtons) {
+//                button.setEnabled(true);
+//                button.setBackground(Color.GREEN);
+//            }
+//        } else if (!isWon() && boardFilledUp()) {
+//            labelCurrentPlayer.setText("DEU VELHA (EMPATOU)");
+//            disableButtons();
+//        }
+//    }
     private void disableButtons() {
         for (JButton button : buttons) {
             button.setEnabled(false);
@@ -430,16 +457,16 @@ public class Client extends javax.swing.JFrame {
             button.setEnabled(true);
         }
     }
-    
+
     private void restoreButtons() {
         enableButtons();
-        for(JButton button : buttons) {
+        for (JButton button : buttons) {
             button.setText("");
             button.setBackground(new JButton().getBackground());
         }
     }
 
-    private void setWin() {
+    private void setWins() {
         labelPxWins.setText(Integer.toString(playerXWins));
         labelPoWins.setText(Integer.toString(playerOWins));
 
@@ -511,4 +538,5 @@ public class Client extends javax.swing.JFrame {
     private javax.swing.JLabel labelPoWins;
     private javax.swing.JLabel labelPxWins;
     // End of variables declaration//GEN-END:variables
+
 }
