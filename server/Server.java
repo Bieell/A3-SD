@@ -101,66 +101,6 @@ public class Server {
         return formattedDate;
     }
 
-//    private boolean isWon() {
-//        board = ;
-//        int k = 0;
-//        for (int i = 0; i < 3; i++) {
-//            for (int j = 0; j < 3; j++) {
-//                board[i][j] = buttons[k];
-//                k++;
-//            }
-//        }
-//
-//        // Verificar linhas
-//        for (int linha = 0; linha < 3; linha++) {
-//            if (!board[linha][0].getText().equals("")
-//                    && board[linha][0].getText().equals(board[linha][1].getText())
-//                    && board[linha][0].getText().equals(board[linha][2].getText())) {
-//                winButtons = new JButton[3];
-//                winButtons[0] = board[linha][0];
-//                winButtons[1] = board[linha][1];
-//                winButtons[2] = board[linha][2];
-//                return true;
-//            }
-//        }
-//
-//        // Verificar colunas
-//        for (int coluna = 0; coluna < 3; coluna++) {
-//            if (!board[0][coluna].getText().equals("")
-//                    && board[0][coluna].getText().equals(board[1][coluna].getText())
-//                    && board[0][coluna].getText().equals(board[2][coluna].getText())) {
-//                winButtons = new JButton[3];
-//                winButtons[0] = board[0][coluna];
-//                winButtons[1] = board[1][coluna];
-//                winButtons[2] = board[2][coluna];
-//                return true;
-//            }
-//        }
-//
-//        // Verificar diagonais
-//        if (!board[0][0].getText().equals("")
-//                && board[0][0].getText().equals(board[1][1].getText())
-//                && board[0][0].getText().equals(board[2][2].getText())) {
-//            winButtons = new JButton[3];
-//            winButtons[0] = board[0][0];
-//            winButtons[1] = board[1][1];
-//            winButtons[2] = board[2][2];
-//            return true;
-//        }
-//
-//        if (!board[0][2].getText().equals("")
-//                && board[0][2].getText().equals(board[1][1].getText())
-//                && board[0][2].getText().equals(board[2][0].getText())) {
-//            winButtons = new JButton[3];
-//            winButtons[0] = board[0][2];
-//            winButtons[1] = board[1][1];
-//            winButtons[2] = board[2][0];
-//            return true;
-//        }
-//
-//        return false; // Não há vitória
-//
-//    }
     public static void main(String[] args) {
         new Server();
     }

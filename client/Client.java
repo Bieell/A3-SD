@@ -38,6 +38,7 @@ public class Client extends javax.swing.JFrame implements Runnable {
     private int currentPlayer;
     private boolean myTurn = false;
     private boolean continuePlay = true;
+    private boolean waiting = true;
 
     private int playerXWins = 0;
     private int playerOWins = 0;
@@ -50,10 +51,13 @@ public class Client extends javax.swing.JFrame implements Runnable {
     private DataInputStream fromServer;
     private DataOutputStream toServer;
 
+    private JButton clickedButton;
+
     public Client() {
         initComponents();
         buttons = getButtons();
         board = getBoard();
+        getClickedButton();
         execute();
 
     }
@@ -303,6 +307,8 @@ public class Client extends javax.swing.JFrame implements Runnable {
         if (option == 0) {
             System.exit(0);
         }
+
+
     }//GEN-LAST:event_btnExitActionPerformed
 
     private JButton[] getButtons() {
@@ -371,20 +377,21 @@ public class Client extends javax.swing.JFrame implements Runnable {
 
             while (continuePlay) {
                 if (myTurn) {
-                    for (JButton button : buttons) {
-                        button.addActionListener(new ActionListener() {
-                            @Override
-                            public void actionPerformed(ActionEvent e) {
-                                if (button.getText().equals("")) {
-                                    sendMove(button);
-                                    
-                                }
-
-                            }
-                        });
+                    try {
+                        waitForPlayerAction();
+                        sendMove();
+                        receiveInfo();
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 } else {
-                    receiveInfo();
+                    try {
+                        receiveInfo();
+                        waitForPlayerAction();
+                        sendMove();
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
             }
         } catch (IOException ex) {
@@ -393,12 +400,20 @@ public class Client extends javax.swing.JFrame implements Runnable {
 
     }
 
-    private void sendMove(JButton button) {
-        drawMyMark(button);
+    private void waitForPlayerAction() throws InterruptedException {
+        while (waiting) {
+            Thread.sleep(100);
+        }
+
+        waiting = true;
+    }
+
+    private void sendMove() {
+        drawMyMark(clickedButton);
         int k = 0;
         for (int row = 0; row < 3; row++) {
             for (int column = 0; column < 3; column++) {
-                if (buttons[k] == button) {
+                if (buttons[k] == clickedButton) {
                     try {
                         toServer.writeInt(row);
                         toServer.writeInt(column);
@@ -418,25 +433,43 @@ public class Client extends javax.swing.JFrame implements Runnable {
     private void receiveInfo() {
         try {
             int status = fromServer.readInt();
-            receiveMove();
-            if (status == myMark) {
-                labelStatus.setText("Você venceu!");
-                continuePlay = false;
-                
-            } else if (status == otherMark) {
-                labelStatus.setText("O jogador: '" + marks[otherMark] + "' venceu...");
-                continuePlay = false;
-                
 
-            } else if (status == DRAW) {
-                labelStatus.setText("Deu velha!");
-                continuePlay = false;
-                
-            } else if (status == CONTINUE) {
-                enableButtons();
-                labelStatus.setText("Sua vez! Faça a jogada...");
-                myTurn = true;
+            switch (status) {
+                case PLAYER_X_WON:
+                    continuePlay = false;
+                    if (myMark == PLAYER_X) {
+                        labelStatus.setText("Você venceu!");
 
+                    } else if (myMark == PLAYER_O) {
+                        labelStatus.setText("O jogador: '" + marks[otherMark] + "' venceu...");
+                        receiveMove();
+                    }
+                    break;
+                case PLAYER_O_WON:
+                    continuePlay = false;
+                    if (myMark == PLAYER_O) {
+                        labelStatus.setText("Você venceu!");
+                    } else if (myMark == PLAYER_X) {
+                        labelStatus.setText("O jogador: '" + marks[otherMark] + "' venceu...");
+                        receiveMove();
+                    }
+                    break;
+                case DRAW:
+                    continuePlay = false;
+                    labelStatus.setText("Deu velha!");
+
+                    if (myMark == 'O') {
+                        receiveMove();
+                    }
+                    break;
+                case CONTINUE:
+                    receiveMove();
+                    enableButtons();
+                    labelStatus.setText("Sua vez! Faça a jogada...");
+                    myTurn = true;
+                    break;
+                default:
+                    break;
             }
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
@@ -453,7 +486,6 @@ public class Client extends javax.swing.JFrame implements Runnable {
         button.setText(marks[myMark]);
         button.setForeground(Color.BLUE);
         currentPlayer = otherMark;
-        labelStatus.setText("Esperando jogada...");
     }
 
     private void drawOtherMark(int row, int column) {
@@ -463,109 +495,23 @@ public class Client extends javax.swing.JFrame implements Runnable {
 
     }
 
-//    private void drawMark(JButton button) {;
-//        if (!myTurn) {
-//            if (button.getText().equals("")) {
-//                disableButtons();
-//
-//                button.setText(marks[otherMark]);
-//                button.setForeground(Color.ORANGE);
-//                currentPlayer = otherMark;
-//                labelStatus.setText("Esperando jogada...");
-//            }
-//        } else {
-//            if (button.getText().equals("")) {
-//                button.setText(marks[myMark]);
-//                button.setForeground(Color.BLUE);
-//                currentPlayer = otherMark;
-//                labelStatus.setText("Esperando jogada...");
-//            }
-//        }
-//
-//    }
-//    private boolean isWon() {
-//        board = new JButton[3][3];
-//        int k = 0;
-//        for (int i = 0; i < 3; i++) {
-//            for (int j = 0; j < 3; j++) {
-//                board[i][j] = buttons[k];
-//                k++;
-//            }
-//        }
-//
-//        // Verificar linhas
-//        for (int linha = 0; linha < 3; linha++) {
-//            if (!board[linha][0].getText().equals("")
-//                    && board[linha][0].getText().equals(board[linha][1].getText())
-//                    && board[linha][0].getText().equals(board[linha][2].getText())) {
-//                winButtons = new JButton[3];
-//                winButtons[0] = board[linha][0];
-//                winButtons[1] = board[linha][1];
-//                winButtons[2] = board[linha][2];
-//                return true;
-//            }
-//        }
-//
-//        // Verificar colunas
-//        for (int coluna = 0; coluna < 3; coluna++) {
-//            if (!board[0][coluna].getText().equals("")
-//                    && board[0][coluna].getText().equals(board[1][coluna].getText())
-//                    && board[0][coluna].getText().equals(board[2][coluna].getText())) {
-//                winButtons = new JButton[3];
-//                winButtons[0] = board[0][coluna];
-//                winButtons[1] = board[1][coluna];
-//                winButtons[2] = board[2][coluna];
-//                return true;
-//            }
-//        }
-//
-//        // Verificar diagonais
-//        if (!board[0][0].getText().equals("")
-//                && board[0][0].getText().equals(board[1][1].getText())
-//                && board[0][0].getText().equals(board[2][2].getText())) {
-//            winButtons = new JButton[3];
-//            winButtons[0] = board[0][0];
-//            winButtons[1] = board[1][1];
-//            winButtons[2] = board[2][2];
-//            return true;
-//        }
-//
-//        if (!board[0][2].getText().equals("")
-//                && board[0][2].getText().equals(board[1][1].getText())
-//                && board[0][2].getText().equals(board[2][0].getText())) {
-//            winButtons = new JButton[3];
-//            winButtons[0] = board[0][2];
-//            winButtons[1] = board[1][1];
-//            winButtons[2] = board[2][0];
-//            return true;
-//        }
-//
-//        return false; // Não há vitória
-//
-//    }
-//
-//    public void checkWinner() {
-//        if (isWon()) {
-//            disableButtons();
-//            String markString = winButtons[0].getText();
-//            if (markString.equals(marks[0])) {
-//                labelCurrentPlayer.setText("O JOGADOR 'X' VENCEU");
-//                playerXWins += 1;
-//                setWins();
-//            } else if (markString.equals(marks[1])) {
-//                labelCurrentPlayer.setText("O JOGADOR 'O' VENCEU");
-//                playerOWins += 1;
-//                setWins();
-//            }
-//            for (JButton button : winButtons) {
-//                button.setEnabled(true);
-//                button.setBackground(Color.GREEN);
-//            }
-//        } else if (!isWon() && boardFilledUp()) {
-//            labelCurrentPlayer.setText("DEU VELHA (EMPATOU)");
-//            disableButtons();
-//        }
-//    }
+    private void getClickedButton() {
+        for (JButton button : buttons) {
+            button.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if (button.getText().equals("")) {
+                        clickedButton = button;
+                        myTurn = false;
+                        labelStatus.setText("Esperando Jogada...");
+                        waiting = false;
+                    }
+
+                }
+            });
+        }
+    }
+
     private void disableButtons() {
         for (JButton button : buttons) {
             button.setEnabled(false);
