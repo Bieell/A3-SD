@@ -331,9 +331,6 @@
         <Property name="text" type="java.lang.String" value="RESETAR"/>
         <Property name="focusable" type="boolean" value="false"/>
       </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnRstActionPerformed"/>
-      </Events>
     </Component>
     <Component class="javax.swing.JButton" name="btnExit">
       <Properties>
@@ -370,9 +367,6 @@
         </Property>
         <Property name="text" type="java.lang.String" value="NOVO JOGO"/>
       </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnNewGameActionPerformed"/>
-      </Events>
     </Component>
     <Component class="javax.swing.JLabel" name="labelStatus">
       <Properties>

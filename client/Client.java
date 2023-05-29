@@ -24,14 +24,14 @@ import javax.swing.JOptionPane;
  */
 public class Client extends javax.swing.JFrame implements Runnable {
 
-//    private String[] marks = {"X", "O"};
-    private String myToken = "", otherToken = "";
+    private String[] marks = {"X", "O"};
+    private int myMark, otherMark;
 
     private final static int PLAYER_X = 0;
     private final static int PLAYER_O = 1;
-    private int player;
     private int currentPlayer;
     private boolean myTurn = false;
+    private boolean continuePlay = true;
 
     private int playerXWins = 0;
     private int playerOWins = 0;
@@ -47,6 +47,7 @@ public class Client extends javax.swing.JFrame implements Runnable {
     public Client() {
         initComponents();
         buttons = getButtons();
+        board = getBoard();
         execute();
 
     }
@@ -178,11 +179,6 @@ public class Client extends javax.swing.JFrame implements Runnable {
         btnRst.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         btnRst.setText("RESETAR");
         btnRst.setFocusable(false);
-        btnRst.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnRstActionPerformed(evt);
-            }
-        });
 
         btnExit.setBackground(new java.awt.Color(255, 51, 51));
         btnExit.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
@@ -202,11 +198,6 @@ public class Client extends javax.swing.JFrame implements Runnable {
         btnNewGame.setBackground(new java.awt.Color(51, 204, 255));
         btnNewGame.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         btnNewGame.setText("NOVO JOGO");
-        btnNewGame.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnNewGameActionPerformed(evt);
-            }
-        });
 
         labelStatus.setFont(new java.awt.Font("Segoe UI", 1, 22)); // NOI18N
         labelStatus.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -308,16 +299,6 @@ public class Client extends javax.swing.JFrame implements Runnable {
         }
     }//GEN-LAST:event_btnExitActionPerformed
 
-    private void btnRstActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRstActionPerformed
-        playerXWins = 0;
-        playerOWins = 0;
-        setWins();
-    }//GEN-LAST:event_btnRstActionPerformed
-
-    private void btnNewGameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNewGameActionPerformed
-
-    }//GEN-LAST:event_btnNewGameActionPerformed
-
     private JButton[] getButtons() {
         buttons = new JButton[9];
         buttons[0] = btn1;
@@ -332,61 +313,16 @@ public class Client extends javax.swing.JFrame implements Runnable {
         return buttons;
     }
 
-    @Override
-    public void run() {
-        try {
-            disableButtons();
-            player = fromServer.readInt();
-            
-            if(player == PLAYER_X) {
-                myToken = "X";
-                otherToken = "O";
-                labelStatus.setText("Esperando outro jogador...");
-                labelTitle.setText("VOCE É O JOGADOR " + "'" + myToken + "'");
-                if(fromServer.readInt() == 0) {
-                    labelStatus.setText("Sua vez! Faça a jogada...");
-                    myTurn = true;
-                    enableButtons();
-                }
-                
-            } else if (player == PLAYER_O) {
-                myToken = "O";
-                otherToken = "X";
-                labelStatus.setText("Esperando jogada...");
-                labelTitle.setText("VOCE É O JOGADOR " + "'" + myToken + "'");
+    private JButton[][] getBoard() {
+        board = new JButton[3][3];
+        int k = 0;
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                board[i][j] = buttons[k];
+                k++;
             }
-
-//            for (JButton button : buttons) {
-//                button.addActionListener(new ActionListener() {
-//                    @Override
-//                    public void actionPerformed(ActionEvent e) {
-//                        if (myTurn) {
-//                            enableButtons();
-//                            if (button.getText().equals("")) {
-//                                button.setText("X");
-//                                button.setForeground(Color.blue);
-//                                currentPlayer = PLAYER_O;
-//                                labelCurrentPlayer.setText("VEZ DO JOGADOR 'O'");
-//
-//                            }
-//                        } else if (!myTurn) {
-//                            disableButtons();
-//                            if (button.getText().equals("")) {
-//                                button.setText("O");
-//                                button.setForeground(Color.ORANGE);
-//                                currentPlayer = PLAYER_X;
-//                                labelCurrentPlayer.setText("VEZ DO JOGADOR 'X'");
-//
-//                            }
-//                        }
-//                    }
-//                });
-//            }
-
-        } catch (IOException ex) {
-            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
-
+        return board;
     }
 
     private void execute() {
@@ -403,6 +339,121 @@ public class Client extends javax.swing.JFrame implements Runnable {
         thread.start();
     }
 
+    @Override
+    public void run() {
+        try {
+            disableButtons();
+            currentPlayer = fromServer.readInt();
+
+            if (currentPlayer == PLAYER_X) {
+                myMark = PLAYER_X;
+                otherMark = PLAYER_O;
+                labelStatus.setText("Esperando outro jogador...");
+                labelTitle.setText("VOCE É O JOGADOR " + "'" + marks[myMark] + "'");
+                if (fromServer.readInt() == 0) {
+                    labelStatus.setText("Sua vez! Faça a jogada...");
+                    myTurn = true;
+                    enableButtons();
+                }
+
+            } else if (currentPlayer == PLAYER_O) {
+                myMark = PLAYER_O;
+                otherMark = PLAYER_X;
+                labelStatus.setText("Esperando jogada...");
+                labelTitle.setText("VOCE É O JOGADOR " + "'" + marks[myMark] + "'");
+            }
+
+            while (continuePlay) {
+                if (myTurn) {
+                    for (JButton button : buttons) {
+                        button.addActionListener(new ActionListener() {
+                            @Override
+                            public void actionPerformed(ActionEvent e) {
+                                if (button.getText().equals("")) {
+                                    sendMove(button);
+                                }
+
+                            }
+                        });
+                    }
+                } else {
+                    receiveInfo();
+                }
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }
+
+    private void sendMove(JButton button) {
+        drawMyMark(button);
+        int k = 0;
+        for (int row = 0; row < 3; row++) {
+            for (int column = 0; column < 3; column++) {
+                if (buttons[k] == button) {
+                    try {
+                        toServer.writeInt(row);
+                        toServer.writeInt(column);
+                    } catch (IOException ex) {
+                        Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+                k++;
+            }
+        }
+        myTurn = false;
+        disableButtons();
+
+    }
+
+    private void receiveInfo() {
+        try {
+            int row = fromServer.readInt();
+            int column = fromServer.readInt();
+            System.out.println(row + " " + column);
+            drawOtherMark(row, column);
+            enableButtons();
+            myTurn = true;
+        } catch (IOException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void drawMyMark(JButton button) {
+        button.setText(marks[myMark]);
+        button.setForeground(Color.BLUE);
+        currentPlayer = otherMark;
+        labelStatus.setText("Esperando jogada...");
+    }
+
+    private void drawOtherMark(int row, int column) {
+        board[row][column].setText(marks[otherMark]);
+        board[row][column].setForeground(Color.ORANGE);
+        currentPlayer = myMark;
+        labelStatus.setText("Sua vez! Faça a jogada...");
+    }
+
+//    private void drawMark(JButton button) {;
+//        if (!myTurn) {
+//            if (button.getText().equals("")) {
+//                disableButtons();
+//
+//                button.setText(marks[otherMark]);
+//                button.setForeground(Color.ORANGE);
+//                currentPlayer = otherMark;
+//                labelStatus.setText("Esperando jogada...");
+//            }
+//        } else {
+//            if (button.getText().equals("")) {
+//                button.setText(marks[myMark]);
+//                button.setForeground(Color.BLUE);
+//                currentPlayer = otherMark;
+//                labelStatus.setText("Esperando jogada...");
+//            }
+//        }
+//
+//    }
 //    private boolean isWon() {
 //        board = new JButton[3][3];
 //        int k = 0;
