@@ -29,6 +29,12 @@ public class Client extends javax.swing.JFrame implements Runnable {
 
     private final static int PLAYER_X = 0;
     private final static int PLAYER_O = 1;
+
+    private final static int PLAYER_X_WON = 0;
+    private final static int PLAYER_O_WON = 1;
+    private final static int DRAW = 2;
+    private final static int CONTINUE = 3;
+
     private int currentPlayer;
     private boolean myTurn = false;
     private boolean continuePlay = true;
@@ -371,6 +377,7 @@ public class Client extends javax.swing.JFrame implements Runnable {
                             public void actionPerformed(ActionEvent e) {
                                 if (button.getText().equals("")) {
                                     sendMove(button);
+                                    
                                 }
 
                             }
@@ -395,6 +402,7 @@ public class Client extends javax.swing.JFrame implements Runnable {
                     try {
                         toServer.writeInt(row);
                         toServer.writeInt(column);
+                        toServer.flush();
                     } catch (IOException ex) {
                         Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
                     }
@@ -409,15 +417,36 @@ public class Client extends javax.swing.JFrame implements Runnable {
 
     private void receiveInfo() {
         try {
-            int row = fromServer.readInt();
-            int column = fromServer.readInt();
-            System.out.println(row + " " + column);
-            drawOtherMark(row, column);
-            enableButtons();
-            myTurn = true;
+            int status = fromServer.readInt();
+            receiveMove();
+            if (status == myMark) {
+                labelStatus.setText("Você venceu!");
+                continuePlay = false;
+                
+            } else if (status == otherMark) {
+                labelStatus.setText("O jogador: '" + marks[otherMark] + "' venceu...");
+                continuePlay = false;
+                
+
+            } else if (status == DRAW) {
+                labelStatus.setText("Deu velha!");
+                continuePlay = false;
+                
+            } else if (status == CONTINUE) {
+                enableButtons();
+                labelStatus.setText("Sua vez! Faça a jogada...");
+                myTurn = true;
+
+            }
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    private void receiveMove() throws IOException {
+        int row = fromServer.readInt();
+        int column = fromServer.readInt();
+        drawOtherMark(row, column);
     }
 
     private void drawMyMark(JButton button) {
@@ -431,7 +460,7 @@ public class Client extends javax.swing.JFrame implements Runnable {
         board[row][column].setText(marks[otherMark]);
         board[row][column].setForeground(Color.ORANGE);
         currentPlayer = myMark;
-        labelStatus.setText("Sua vez! Faça a jogada...");
+
     }
 
 //    private void drawMark(JButton button) {;
