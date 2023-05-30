@@ -318,6 +318,7 @@ public class Client extends javax.swing.JFrame implements Runnable {
         int k = 0;
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
+                buttons[k].setBackground(Color.WHITE);
                 board[i][j] = buttons[k];
                 k++;
             }
@@ -343,6 +344,7 @@ public class Client extends javax.swing.JFrame implements Runnable {
     public void run() {
         try {
             disableButtons();
+            btnRematch.setVisible(false);
             currentPlayer = fromServer.readInt();
 
             if (currentPlayer == PLAYER_X) {
@@ -423,6 +425,8 @@ public class Client extends javax.swing.JFrame implements Runnable {
 
             switch (status) {
                 case PLAYER_X_WON:
+                    playerXWins +=1;
+                    setWins();
                     continuePlay = false;
                     if (myMark == PLAYER_X) {
                         labelStatus.setText("Você venceu!");
@@ -432,9 +436,12 @@ public class Client extends javax.swing.JFrame implements Runnable {
                         labelStatus.setText("O jogador: '" + marks[otherMark] + "' venceu...");
                         receiveMove();
                         getWinButtons(status);
+                        btnRematch.setVisible(true);
                     }
                     return PLAYER_X_WON;
                 case PLAYER_O_WON:
+                    playerOWins +=1;
+                    setWins();
                     continuePlay = false;
                     if (myMark == PLAYER_O) {
                         labelStatus.setText("Você venceu!");
@@ -443,6 +450,7 @@ public class Client extends javax.swing.JFrame implements Runnable {
                         labelStatus.setText("O jogador: '" + marks[otherMark] + "' venceu...");
                         receiveMove();
                         getWinButtons(status);
+                        btnRematch.setVisible(true);
                     }
                     return PLAYER_O_WON;
                 case DRAW:
@@ -450,7 +458,7 @@ public class Client extends javax.swing.JFrame implements Runnable {
                         receiveMove();
                     }
                     labelStatus.setText("Deu velha!");
-                    rematch();
+                    restart();
                     return DRAW;
                 case CONTINUE:
                     receiveMove();
@@ -481,7 +489,7 @@ public class Client extends javax.swing.JFrame implements Runnable {
 
     private void drawOtherMark(int row, int column) {
         board[row][column].setText(marks[otherMark]);
-        board[row][column].setForeground(Color.ORANGE);
+        board[row][column].setForeground(Color.RED);
         currentPlayer = myMark;
 
     }
@@ -535,7 +543,7 @@ public class Client extends javax.swing.JFrame implements Runnable {
             if (marks[myMark].equals(winButtons[i].getText())) {
                 winButtons[i].setBackground(Color.GREEN);
             } else {
-                winButtons[i].setBackground(Color.RED);
+                winButtons[i].setBackground(Color.ORANGE);
             }
         }
     }
@@ -575,7 +583,7 @@ public class Client extends javax.swing.JFrame implements Runnable {
         return true;
     }
 
-    private void rematch() throws InterruptedException {
+    private void restart() throws InterruptedException {
         restoreButtons();
         disableButtons();
         labelStatus.setText("Deu velha, iniciando novo jogo...");
@@ -589,6 +597,10 @@ public class Client extends javax.swing.JFrame implements Runnable {
             labelStatus.setText("Esperando Jogada...");
             myTurn = false;
         }
+    }
+    
+    private void rematch() {
+        
     }
 
     /**
