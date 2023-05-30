@@ -93,6 +93,8 @@ public class NewGameSession implements Runnable {
             outputPlayerOne.writeInt(playerWon);
             outputPlayerTwo.writeInt(playerWon);
             sendMove(outputPlayer, row, column);
+            sendWinButtons(outputPlayerOne);
+            sendWinButtons(outputPlayerTwo);
             return playerWon;
 
         } else if (isFull()) {
@@ -164,7 +166,6 @@ public class NewGameSession implements Runnable {
         }
         return true;
     }
-
     private void setWinButtons(int[] rows, int[] columns) {
         winButtons[0][0] = rows[0];
         winButtons[0][1] = columns[0];
@@ -173,5 +174,23 @@ public class NewGameSession implements Runnable {
         winButtons[2][0] = rows[2];
         winButtons[2][1] = columns[2];
 
+    }
+    
+    private void sendWinButtons(DataOutputStream outputPlayer) {
+        try{
+        int linhas = winButtons.length;
+        int colunas = winButtons[0].length;
+        outputPlayer.writeInt(linhas);
+        outputPlayer.writeInt(colunas); 
+        
+        for (int i = 0; i < linhas; i++) {
+            for (int j = 0; j < colunas; j++) {
+                outputPlayer.writeInt(winButtons[i][j]);
+            }
+        }
+        
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
     }
 }

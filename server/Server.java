@@ -69,6 +69,7 @@ public class Server {
             logTime = formatCurrentTime();
             serverSocket = new ServerSocket(8000);
             textArea.append(logTime + ":       Server iniciado na porta 8000.\n");
+            int sessionNum = 1;
             while (true) {
                 textArea.append(logTime + ":       Aguardando conexão dos Jogadores.\n");
                 socketPlayerOne = serverSocket.accept();
@@ -78,8 +79,6 @@ public class Server {
                 socketPlayerTwo = serverSocket.accept();
                 textArea.append(logTime + ":       Jogador 2 conectado!\n");
                 new DataOutputStream(socketPlayerTwo.getOutputStream()).writeInt(PLAYER_O);
-
-                int sessionNum = 1;
 
                 textArea.append(logTime + ":       Iniciando thread para sessão:  " + sessionNum++ + "...\n");
                 NewGameSession session = new NewGameSession(socketPlayerOne, socketPlayerTwo);

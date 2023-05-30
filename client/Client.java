@@ -425,7 +425,6 @@ public class Client extends javax.swing.JFrame implements Runnable {
                 k++;
             }
         }
-        myTurn = false;
         disableButtons();
 
     }
@@ -439,20 +438,26 @@ public class Client extends javax.swing.JFrame implements Runnable {
                     continuePlay = false;
                     if (myMark == PLAYER_X) {
                         labelStatus.setText("Você venceu!");
+                        getWinButtons(status);
 
                     } else if (myMark == PLAYER_O) {
                         labelStatus.setText("O jogador: '" + marks[otherMark] + "' venceu...");
                         receiveMove();
+                        getWinButtons(status);
                     }
+                    
                     break;
                 case PLAYER_O_WON:
                     continuePlay = false;
                     if (myMark == PLAYER_O) {
                         labelStatus.setText("Você venceu!");
+                        getWinButtons(status);
                     } else if (myMark == PLAYER_X) {
                         labelStatus.setText("O jogador: '" + marks[otherMark] + "' venceu...");
                         receiveMove();
+                        getWinButtons(status);
                     }
+                    
                     break;
                 case DRAW:
                     continuePlay = false;
@@ -511,6 +516,44 @@ public class Client extends javax.swing.JFrame implements Runnable {
             });
         }
     }
+
+    public JButton[] getWinButtons(int status) {
+        try {
+        int linhas = fromServer.readInt();
+        int colunas = fromServer.readInt();
+        
+        int[][] matriz = new int[linhas][colunas];
+        for (int i = 0; i < linhas; i++) {
+            for (int j = 0; j < colunas; j++) {
+                matriz[i][j] = fromServer.readInt();
+                System.out.println(matriz[i][j]);
+            }
+        }
+        
+        winButtons = new JButton[3];
+        winButtons[0] = board[matriz[0][0]][matriz[0][1]];
+        winButtons[1] = board[matriz[1][0]][matriz[1][1]];
+        winButtons[2] = board[matriz[2][0]][matriz[2][1]];
+        
+        enableWinButtons();
+        
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+        return winButtons;
+    }
+    
+    private void enableWinButtons() {
+        for(int i = 0; i<3; i++) {
+            winButtons[i].setEnabled(true);
+            if(marks[myMark].equals(winButtons[i].getText())){
+                winButtons[i].setBackground(Color.GREEN);
+            } else {
+                winButtons[i].setBackground(Color.RED);
+            }
+        }
+    }
+    
 
     private void disableButtons() {
         for (JButton button : buttons) {
