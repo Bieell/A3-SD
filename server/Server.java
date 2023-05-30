@@ -75,11 +75,27 @@ public class Server {
                 socketPlayerOne = serverSocket.accept();
                 textArea.append(logTime + ":       Jogador 1 conectado!\n");
                 new DataOutputStream(socketPlayerOne.getOutputStream()).writeInt(PLAYER_X);
-
+                
+                DataInputStream inputCPU = new DataInputStream(socketPlayerOne.getInputStream());
+                boolean vsCPU = inputCPU.readBoolean();
+                if(vsCPU == true) {
+                    System.out.println("Contra CPU");
+                    continue;
+                }
+                
                 socketPlayerTwo = serverSocket.accept();
                 textArea.append(logTime + ":       Jogador 2 conectado!\n");
-                new DataOutputStream(socketPlayerTwo.getOutputStream()).writeInt(PLAYER_O);
+                inputCPU = new DataInputStream(socketPlayerTwo.getInputStream());
+                vsCPU = inputCPU.readBoolean();
+                
+                if(vsCPU == true) {
+                    System.out.println("Contra CPU");
+                    new DataOutputStream(socketPlayerTwo.getOutputStream()).writeInt(PLAYER_X);
+                    new DataOutputStream(socketPlayerOne.getOutputStream()).writeInt(-1);
+                    continue;
+                }
 
+                new DataOutputStream(socketPlayerTwo.getOutputStream()).writeInt(PLAYER_O);
                 textArea.append(logTime + ":       Iniciando thread para sessão:  " + sessionNum++ + "...\n");
                 NewGameSession session = new NewGameSession(socketPlayerOne, socketPlayerTwo);
                 Thread t = new Thread(session);

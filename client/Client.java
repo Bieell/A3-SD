@@ -24,7 +24,7 @@ import javax.swing.JOptionPane;
  */
 public class Client extends javax.swing.JFrame implements Runnable {
 
-    private String[] marks = {"X", "O"};
+    private final String[] marks = {"X", "O"};
     private int myMark, otherMark;
 
     private final static int PLAYER_X = 0;
@@ -55,10 +55,12 @@ public class Client extends javax.swing.JFrame implements Runnable {
 
     public Client() {
         initComponents();
+        connect();
         buttons = getButtons();
         board = getBoard();
-        getClickedButton();
+        vsCPU();
         execute();
+        getClickedButton();
 
     }
 
@@ -326,8 +328,7 @@ public class Client extends javax.swing.JFrame implements Runnable {
         return board;
     }
 
-    private void execute() {
-
+    private void connect() {
         try {
             socket = new Socket("localhost", 8000);
             fromServer = new DataInputStream(socket.getInputStream());
@@ -335,7 +336,9 @@ public class Client extends javax.swing.JFrame implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
 
+    private void execute() {
         Thread thread = new Thread(this);
         thread.start();
     }
@@ -356,6 +359,15 @@ public class Client extends javax.swing.JFrame implements Runnable {
                     labelStatus.setText("Sua vez! Faça a jogada...");
                     myTurn = true;
                     enableButtons();
+                } else {
+                    try {
+                        labelTitle.setText("SAINDO DA APLICAÇÃO...");
+                        labelStatus.setText("2º jogador não encontrado...");
+                        Thread.sleep(2000);
+                        System.exit(0);
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
 
             } else if (currentPlayer == PLAYER_O) {
@@ -370,13 +382,17 @@ public class Client extends javax.swing.JFrame implements Runnable {
                     try {
                         waitForPlayerAction();
                         sendMove();
-                        if (receiveInfo() == DRAW) continue;
+                        if (receiveInfo() == DRAW) {
+                            continue;
+                        }
                     } catch (InterruptedException ex) {
                         Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 } else {
                     try {
-                        if (receiveInfo() == DRAW) continue;
+                        if (receiveInfo() == DRAW) {
+                            continue;
+                        }
                         waitForPlayerAction();
                         sendMove();
                     } catch (InterruptedException ex) {
@@ -425,7 +441,7 @@ public class Client extends javax.swing.JFrame implements Runnable {
 
             switch (status) {
                 case PLAYER_X_WON:
-                    playerXWins +=1;
+                    playerXWins += 1;
                     setWins();
                     continuePlay = false;
                     if (myMark == PLAYER_X) {
@@ -440,7 +456,7 @@ public class Client extends javax.swing.JFrame implements Runnable {
                     }
                     return PLAYER_X_WON;
                 case PLAYER_O_WON:
-                    playerOWins +=1;
+                    playerOWins += 1;
                     setWins();
                     continuePlay = false;
                     if (myMark == PLAYER_O) {
@@ -574,15 +590,6 @@ public class Client extends javax.swing.JFrame implements Runnable {
 
     }
 
-    private boolean boardFilledUp() {
-        for (int i = 0; i < buttons.length; ++i) {
-            if (buttons[i].getText().isEmpty()) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     private void restart() throws InterruptedException {
         restoreButtons();
         disableButtons();
@@ -598,9 +605,19 @@ public class Client extends javax.swing.JFrame implements Runnable {
             myTurn = false;
         }
     }
-    
-    private void rematch() {
-        
+
+    private void vsCPU() {
+        try {
+            Object[] options = {"Sim", "Não"};
+            int option = JOptionPane.showOptionDialog(null, "Deseja jogar contra cpu?", "Alerta", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+            if (option == 0) {
+                toServer.writeBoolean(true);
+            } else {
+                toServer.writeBoolean(false);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
