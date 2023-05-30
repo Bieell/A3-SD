@@ -8,6 +8,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -68,17 +69,15 @@ public class NewGameSession implements Runnable {
                 int column = inputPlayerOne.readInt();
                 board[row][column] = "X";
 
-                if (checkWinner("X", row, column, PLAYER_X, outputPlayerTwo) != CONTINUE) {
-                    break;
-                }
-
+                int result = checkWinner("X", row, column, PLAYER_X, outputPlayerTwo);
+                if (result == DRAW) continue;
+                
                 row = inputPlayerTwo.readInt();
                 column = inputPlayerTwo.readInt();
                 board[row][column] = "O";
 
-                if (checkWinner("O", row, column, PLAYER_O, outputPlayerOne) != CONTINUE) {
-                    break;
-                }
+                result = checkWinner("O", row, column, PLAYER_O, outputPlayerOne);
+                if (result == DRAW) continue;
             }
 
         } catch (IOException ex) {
@@ -101,6 +100,9 @@ public class NewGameSession implements Runnable {
             outputPlayerOne.writeInt(DRAW);
             outputPlayerTwo.writeInt(DRAW);
             sendMove(outputPlayer, row, column);
+            for (int i = 0; i<board.length; i++) {
+                Arrays.fill(board[i], "");
+            }
             return DRAW;
         } else {
             outputPlayer.writeInt(CONTINUE);

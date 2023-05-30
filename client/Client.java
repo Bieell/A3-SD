@@ -87,10 +87,9 @@ public class Client extends javax.swing.JFrame implements Runnable {
         jLabel7 = new javax.swing.JLabel();
         labelPxWins = new javax.swing.JLabel();
         labelPoWins = new javax.swing.JLabel();
-        btnRst = new javax.swing.JButton();
         btnExit = new javax.swing.JButton();
         labelTitle = new javax.swing.JLabel();
-        btnNewGame = new javax.swing.JButton();
+        btnRematch = new javax.swing.JButton();
         labelStatus = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -185,11 +184,6 @@ public class Client extends javax.swing.JFrame implements Runnable {
                 .addGap(21, 21, 21))
         );
 
-        btnRst.setBackground(new java.awt.Color(255, 255, 0));
-        btnRst.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        btnRst.setText("RESETAR");
-        btnRst.setFocusable(false);
-
         btnExit.setBackground(new java.awt.Color(255, 51, 51));
         btnExit.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         btnExit.setText("SAIR");
@@ -205,9 +199,9 @@ public class Client extends javax.swing.JFrame implements Runnable {
         labelTitle.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         labelTitle.setToolTipText("");
 
-        btnNewGame.setBackground(new java.awt.Color(51, 204, 255));
-        btnNewGame.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        btnNewGame.setText("NOVO JOGO");
+        btnRematch.setBackground(new java.awt.Color(51, 204, 255));
+        btnRematch.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnRematch.setText("REVANCHE");
 
         labelStatus.setFont(new java.awt.Font("Segoe UI", 1, 22)); // NOI18N
         labelStatus.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -242,14 +236,10 @@ public class Client extends javax.swing.JFrame implements Runnable {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(60, 60, 60)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(btnRst, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(27, 27, 27)
-                                .addComponent(btnExit, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(btnNewGame, javax.swing.GroupLayout.PREFERRED_SIZE, 267, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(btnRematch, javax.swing.GroupLayout.PREFERRED_SIZE, 267, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(btnExit, javax.swing.GroupLayout.PREFERRED_SIZE, 267, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 12, Short.MAX_VALUE)
@@ -285,11 +275,9 @@ public class Client extends javax.swing.JFrame implements Runnable {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(btnNewGame, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btnRematch, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(btnRst, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(btnExit, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(btnExit, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addComponent(btn7, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addComponent(btn8, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -380,13 +368,13 @@ public class Client extends javax.swing.JFrame implements Runnable {
                     try {
                         waitForPlayerAction();
                         sendMove();
-                        receiveInfo();
+                        if (receiveInfo() == DRAW) continue;
                     } catch (InterruptedException ex) {
                         Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 } else {
                     try {
-                        receiveInfo();
+                        if (receiveInfo() == DRAW) continue;
                         waitForPlayerAction();
                         sendMove();
                     } catch (InterruptedException ex) {
@@ -429,7 +417,7 @@ public class Client extends javax.swing.JFrame implements Runnable {
 
     }
 
-    private void receiveInfo() {
+    private int receiveInfo() throws InterruptedException {
         try {
             int status = fromServer.readInt();
 
@@ -445,8 +433,7 @@ public class Client extends javax.swing.JFrame implements Runnable {
                         receiveMove();
                         getWinButtons(status);
                     }
-                    
-                    break;
+                    return PLAYER_X_WON;
                 case PLAYER_O_WON:
                     continuePlay = false;
                     if (myMark == PLAYER_O) {
@@ -457,28 +444,27 @@ public class Client extends javax.swing.JFrame implements Runnable {
                         receiveMove();
                         getWinButtons(status);
                     }
-                    
-                    break;
+                    return PLAYER_O_WON;
                 case DRAW:
-                    continuePlay = false;
-                    labelStatus.setText("Deu velha!");
-
-                    if (myMark == 'O') {
+                    if (myMark == PLAYER_O) {
                         receiveMove();
                     }
-                    break;
+                    labelStatus.setText("Deu velha!");
+                    rematch();
+                    return DRAW;
                 case CONTINUE:
                     receiveMove();
                     enableButtons();
                     labelStatus.setText("Sua vez! Faça a jogada...");
                     myTurn = true;
-                    break;
+                    return CONTINUE;
                 default:
                     break;
             }
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
+        return CONTINUE;
     }
 
     private void receiveMove() throws IOException {
@@ -519,41 +505,40 @@ public class Client extends javax.swing.JFrame implements Runnable {
 
     public JButton[] getWinButtons(int status) {
         try {
-        int linhas = fromServer.readInt();
-        int colunas = fromServer.readInt();
-        
-        int[][] matriz = new int[linhas][colunas];
-        for (int i = 0; i < linhas; i++) {
-            for (int j = 0; j < colunas; j++) {
-                matriz[i][j] = fromServer.readInt();
-                System.out.println(matriz[i][j]);
+            int linhas = fromServer.readInt();
+            int colunas = fromServer.readInt();
+
+            int[][] matriz = new int[linhas][colunas];
+            for (int i = 0; i < linhas; i++) {
+                for (int j = 0; j < colunas; j++) {
+                    matriz[i][j] = fromServer.readInt();
+                    System.out.println(matriz[i][j]);
+                }
             }
-        }
-        
-        winButtons = new JButton[3];
-        winButtons[0] = board[matriz[0][0]][matriz[0][1]];
-        winButtons[1] = board[matriz[1][0]][matriz[1][1]];
-        winButtons[2] = board[matriz[2][0]][matriz[2][1]];
-        
-        enableWinButtons();
-        
-        } catch(IOException e) {
+
+            winButtons = new JButton[3];
+            winButtons[0] = board[matriz[0][0]][matriz[0][1]];
+            winButtons[1] = board[matriz[1][0]][matriz[1][1]];
+            winButtons[2] = board[matriz[2][0]][matriz[2][1]];
+
+            enableWinButtons();
+
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return winButtons;
     }
-    
+
     private void enableWinButtons() {
-        for(int i = 0; i<3; i++) {
+        for (int i = 0; i < 3; i++) {
             winButtons[i].setEnabled(true);
-            if(marks[myMark].equals(winButtons[i].getText())){
+            if (marks[myMark].equals(winButtons[i].getText())) {
                 winButtons[i].setBackground(Color.GREEN);
             } else {
                 winButtons[i].setBackground(Color.RED);
             }
         }
     }
-    
 
     private void disableButtons() {
         for (JButton button : buttons) {
@@ -590,6 +575,22 @@ public class Client extends javax.swing.JFrame implements Runnable {
         return true;
     }
 
+    private void rematch() throws InterruptedException {
+        restoreButtons();
+        disableButtons();
+        labelStatus.setText("Deu velha, iniciando novo jogo...");
+        Thread.sleep(1000);
+
+        if (myMark == PLAYER_X) {
+            labelStatus.setText("Sua vez! Faça a jogada...");
+            myTurn = true;
+            enableButtons();
+        } else {
+            labelStatus.setText("Esperando Jogada...");
+            myTurn = false;
+        }
+    }
+
     /**
      * @param args the command line arguments
      */
@@ -608,8 +609,7 @@ public class Client extends javax.swing.JFrame implements Runnable {
     private javax.swing.JButton btn8;
     private javax.swing.JButton btn9;
     private javax.swing.JButton btnExit;
-    private javax.swing.JButton btnNewGame;
-    private javax.swing.JButton btnRst;
+    private javax.swing.JButton btnRematch;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
