@@ -25,6 +25,7 @@ public class NewGameSession implements Runnable {
     private final static int PLAYER_O_WON = 1;
     private final static int DRAW = 2;
     private final static int CONTINUE = 3;
+    private final static int REMATCH = 4;
 
     private int currentPlayer;
     private int playerXWins = 0;
@@ -44,7 +45,7 @@ public class NewGameSession implements Runnable {
     public NewGameSession(Socket socketPlayerOne, Socket socketPlayerTwo) {
         this.socketPlayerOne = socketPlayerOne;
         this.socketPlayerTwo = socketPlayerTwo;
-        
+
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 board[i][j] = "";
@@ -70,14 +71,24 @@ public class NewGameSession implements Runnable {
                 board[row][column] = "X";
 
                 int result = checkWinner("X", row, column, PLAYER_X, outputPlayerTwo);
-                if (result == DRAW) continue;
-                
+                if (result == DRAW) {
+                    continue;
+                }
+                if (result == REMATCH) {
+                    continue;
+                }
+
                 row = inputPlayerTwo.readInt();
                 column = inputPlayerTwo.readInt();
                 board[row][column] = "O";
 
                 result = checkWinner("O", row, column, PLAYER_O, outputPlayerOne);
-                if (result == DRAW) continue;
+                if (result == DRAW) {
+                    continue;
+                }
+                if (result == REMATCH) {
+                    continue;
+                }
             }
 
         } catch (IOException ex) {
@@ -94,13 +105,19 @@ public class NewGameSession implements Runnable {
             sendMove(outputPlayer, row, column);
             sendWinButtons(outputPlayerOne);
             sendWinButtons(outputPlayerTwo);
+            if (rematch(mark) == true) {
+                for (int i = 0; i < board.length; i++) {
+                    Arrays.fill(board[i], "");
+                }
+                return REMATCH;
+            }
             return playerWon;
 
         } else if (isFull()) {
             outputPlayerOne.writeInt(DRAW);
             outputPlayerTwo.writeInt(DRAW);
             sendMove(outputPlayer, row, column);
-            for (int i = 0; i<board.length; i++) {
+            for (int i = 0; i < board.length; i++) {
                 Arrays.fill(board[i], "");
             }
             return DRAW;
@@ -118,7 +135,6 @@ public class NewGameSession implements Runnable {
             int[] rows = {0, 1, 2};
             int[] columns = {0, 1, 2};
             setWinButtons(rows, columns);
-
             return true;
         }
 
@@ -168,6 +184,7 @@ public class NewGameSession implements Runnable {
         }
         return true;
     }
+
     private void setWinButtons(int[] rows, int[] columns) {
         winButtons[0][0] = rows[0];
         winButtons[0][1] = columns[0];
@@ -177,22 +194,34 @@ public class NewGameSession implements Runnable {
         winButtons[2][1] = columns[2];
 
     }
-    
+
     private void sendWinButtons(DataOutputStream outputPlayer) {
-        try{
-        int linhas = winButtons.length;
-        int colunas = winButtons[0].length;
-        outputPlayer.writeInt(linhas);
-        outputPlayer.writeInt(colunas); 
-        
-        for (int i = 0; i < linhas; i++) {
-            for (int j = 0; j < colunas; j++) {
-                outputPlayer.writeInt(winButtons[i][j]);
+        try {
+            int linhas = winButtons.length;
+            int colunas = winButtons[0].length;
+            outputPlayer.writeInt(linhas);
+            outputPlayer.writeInt(colunas);
+
+            for (int i = 0; i < linhas; i++) {
+                for (int j = 0; j < colunas; j++) {
+                    outputPlayer.writeInt(winButtons[i][j]);
+                }
             }
-        }
-        
-        } catch(IOException e) {
+
+        } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private boolean rematch(String markWinner) throws IOException {
+        if (markWinner == marks[PLAYER_X]) {
+            inputPlayerTwo.readBoolean();
+            outputPlayerOne.writeBoolean(true);
+            return true;
+        } else {
+            inputPlayerOne.readBoolean();
+            outputPlayerTwo.writeBoolean(true);
+            return true;
         }
     }
 }

@@ -39,6 +39,7 @@ public class Client extends javax.swing.JFrame implements Runnable {
     private boolean myTurn = false;
     private boolean continuePlay = true;
     private boolean waiting = true;
+    boolean refuse = true;
 
     private int playerXWins = 0;
     private int playerOWins = 0;
@@ -204,6 +205,11 @@ public class Client extends javax.swing.JFrame implements Runnable {
         btnRematch.setBackground(new java.awt.Color(51, 204, 255));
         btnRematch.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         btnRematch.setText("REVANCHE");
+        btnRematch.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnRematchActionPerformed(evt);
+            }
+        });
 
         labelStatus.setFont(new java.awt.Font("Segoe UI", 1, 22)); // NOI18N
         labelStatus.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -301,6 +307,24 @@ public class Client extends javax.swing.JFrame implements Runnable {
 
     }//GEN-LAST:event_btnExitActionPerformed
 
+    private void btnRematchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRematchActionPerformed
+        try {
+            restoreButtons();
+            disableButtons();
+            toServer.writeBoolean(true);
+            Thread.sleep(1000);
+            labelStatus.setText("Esperando Jogada...");
+            myTurn = false;
+            waiting = false;
+            btnRematch.setVisible(false);
+
+        } catch (IOException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_btnRematchActionPerformed
+
     private JButton[] getButtons() {
         buttons = new JButton[9];
         buttons[0] = btn1;
@@ -377,33 +401,65 @@ public class Client extends javax.swing.JFrame implements Runnable {
                 labelTitle.setText("VOCE É O JOGADOR " + "'" + marks[myMark] + "'");
             }
 
-            while (continuePlay) {
-                if (myTurn) {
-                    try {
-                        waitForPlayerAction();
-                        sendMove();
-                        if (receiveInfo() == DRAW) {
-                            continue;
-                        }
-                    } catch (InterruptedException ex) {
-                        Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                } else {
-                    try {
-                        if (receiveInfo() == DRAW) {
-                            continue;
-                        }
-                        waitForPlayerAction();
-                        sendMove();
-                    } catch (InterruptedException ex) {
-                        Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                }
-            }
+            playGame();
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
 
+    }
+
+    private void playGame() throws IOException {
+        while (continuePlay) {
+            if (myTurn) {
+                try {
+                    waitForPlayerAction();
+                    sendMove();
+                    switch (receiveInfo()) {
+                        case DRAW:
+                            continue;
+                        case PLAYER_X_WON:
+                            if (myMark == PLAYER_X) {
+                                waitRematch();
+                                continue;
+                            }
+                        case PLAYER_O_WON:
+                            if (myMark == PLAYER_O) {
+                                waitRematch();
+                                continue;
+                            }
+                        default:
+                            break;
+                    }
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            } else {
+                try {
+                    switch (receiveInfo()) {
+                        case DRAW:
+                            continue;
+                        case PLAYER_X_WON:
+                            if (myMark == PLAYER_X) {
+                                waitRematch();
+                            }   
+                            waitForPlayerAction();
+                            continue;
+                        case PLAYER_O_WON:
+                            if (myMark == PLAYER_O) {
+                                waitRematch();
+                            }
+                            waitForPlayerAction();
+                            continue;
+                        default:
+                            break;
+                    }
+                    waitForPlayerAction();
+                    sendMove();
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
     }
 
     private void waitForPlayerAction() throws InterruptedException {
@@ -443,7 +499,6 @@ public class Client extends javax.swing.JFrame implements Runnable {
                 case PLAYER_X_WON:
                     playerXWins += 1;
                     setWins();
-                    continuePlay = false;
                     if (myMark == PLAYER_X) {
                         labelStatus.setText("Você venceu!");
                         getWinButtons(status);
@@ -458,10 +513,10 @@ public class Client extends javax.swing.JFrame implements Runnable {
                 case PLAYER_O_WON:
                     playerOWins += 1;
                     setWins();
-                    continuePlay = false;
                     if (myMark == PLAYER_O) {
                         labelStatus.setText("Você venceu!");
                         getWinButtons(status);
+
                     } else if (myMark == PLAYER_X) {
                         labelStatus.setText("O jogador: '" + marks[otherMark] + "' venceu...");
                         receiveMove();
@@ -618,6 +673,17 @@ public class Client extends javax.swing.JFrame implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void waitRematch() throws IOException, InterruptedException {
+        fromServer.readBoolean();
+        restoreButtons();
+        disableButtons();
+        Thread.sleep(1000);
+        labelStatus.setText("Sua vez! Faça a jogada...");
+        myTurn = true;
+        enableButtons();
+
     }
 
     /**
