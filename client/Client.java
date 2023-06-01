@@ -312,9 +312,16 @@ public class Client extends javax.swing.JFrame implements Runnable {
             disableButtons();
             toServer.writeBoolean(true);
             Thread.sleep(1000);
-            labelStatus.setText("Esperando Jogada...");
-            myTurn = false;
-            waiting = false;
+            if (myMark == PLAYER_O)  {
+                labelStatus.setText("Esperando Jogada...");
+                waiting=false;
+                myTurn = false;
+            } else if (myMark == PLAYER_X){
+                labelStatus.setText("Sua vez! Faça a jogada...");
+                myTurn = true;
+                enableButtons();
+            }
+
             btnRematch.setVisible(false);
 
         } catch (IOException ex) {
@@ -421,11 +428,14 @@ public class Client extends javax.swing.JFrame implements Runnable {
                                 waitRematch();
                                 continue;
                             }
+                            myTurn = false;
                         case PLAYER_O_WON:
                             if (myMark == PLAYER_O) {
                                 waitRematch();
                                 continue;
                             }
+                            myTurn = true;
+                            continue;
                         default:
                             break;
                     }
@@ -440,14 +450,13 @@ public class Client extends javax.swing.JFrame implements Runnable {
                         case PLAYER_X_WON:
                             if (myMark == PLAYER_X) {
                                 waitRematch();
-                            }   
+                            }
                             waitForPlayerAction();
                             continue;
                         case PLAYER_O_WON:
                             if (myMark == PLAYER_O) {
                                 waitRematch();
                             }
-                            waitForPlayerAction();
                             continue;
                         default:
                             break;
@@ -634,7 +643,7 @@ public class Client extends javax.swing.JFrame implements Runnable {
         enableButtons();
         for (JButton button : buttons) {
             button.setText("");
-            button.setBackground(new JButton().getBackground());
+            button.setBackground(Color.WHITE);
         }
     }
 
@@ -679,9 +688,14 @@ public class Client extends javax.swing.JFrame implements Runnable {
         restoreButtons();
         disableButtons();
         Thread.sleep(1000);
-        labelStatus.setText("Sua vez! Faça a jogada...");
-        myTurn = true;
-        enableButtons();
+        if (myMark == PLAYER_X) {
+            labelStatus.setText("Sua vez! Faça a jogada...");
+            myTurn = true;
+            enableButtons();
+        } else if (myMark == PLAYER_O) {
+            labelStatus.setText("Esperando Jogada...");
+            myTurn = false;
+        }
 
     }
 

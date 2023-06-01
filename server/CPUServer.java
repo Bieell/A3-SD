@@ -16,8 +16,7 @@ import java.util.logging.Logger;
  *
  * @author gabri
  */
-public class NewGameSession implements Runnable {
-
+public class CPUServer implements Runnable{
     private String[] marks = {"X", "O"};
     private final static int PLAYER_X = 0;
     private final static int PLAYER_O = 1;
@@ -42,7 +41,7 @@ public class NewGameSession implements Runnable {
     private DataInputStream inputPlayerTwo;
     private DataOutputStream outputPlayerTwo;
 
-    public NewGameSession(Socket socketPlayerOne, Socket socketPlayerTwo) {
+    public CPUServer(Socket socketPlayerOne, Socket socketPlayerTwo) {
         this.socketPlayerOne = socketPlayerOne;
         this.socketPlayerTwo = socketPlayerTwo;
 
@@ -59,9 +58,6 @@ public class NewGameSession implements Runnable {
         try {
             inputPlayerOne = new DataInputStream(socketPlayerOne.getInputStream());
             outputPlayerOne = new DataOutputStream(socketPlayerOne.getOutputStream());
-
-            inputPlayerTwo = new DataInputStream(socketPlayerTwo.getInputStream());
-            outputPlayerTwo = new DataOutputStream(socketPlayerTwo.getOutputStream());
 
             outputPlayerOne.writeInt(0);
 
