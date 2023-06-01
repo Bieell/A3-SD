@@ -15,6 +15,7 @@ import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JButton;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 /**
@@ -510,6 +511,7 @@ public class Client extends javax.swing.JFrame implements Runnable {
                     if (myMark == PLAYER_X) {
                         labelStatus.setText("Você venceu!");
                         getWinButtons(status);
+                        Thread.sleep(1000);
 
                     } else if (myMark == PLAYER_O) {
                         labelStatus.setText("O jogador: '" + marks[otherMark] + "' venceu...");
@@ -524,6 +526,7 @@ public class Client extends javax.swing.JFrame implements Runnable {
                     if (myMark == PLAYER_O) {
                         labelStatus.setText("Você venceu!");
                         getWinButtons(status);
+                        Thread.sleep(1000);
 
                     } else if (myMark == PLAYER_X) {
                         labelStatus.setText("O jogador: '" + marks[otherMark] + "' venceu...");
@@ -567,6 +570,7 @@ public class Client extends javax.swing.JFrame implements Runnable {
     }
 
     private void drawOtherMark(int row, int column) {
+        System.out.println(row +" " + column);
         board[row][column].setText(marks[otherMark]);
         board[row][column].setForeground(Color.RED);
         currentPlayer = myMark;
@@ -671,13 +675,16 @@ public class Client extends javax.swing.JFrame implements Runnable {
 
     private void vsCPU() {
         try {
+            JFrame vscpu = new JFrame();
+            vscpu.setVisible(true);
             Object[] options = {"Sim", "Não"};
-            int option = JOptionPane.showOptionDialog(null, "Deseja jogar contra cpu?", "Alerta", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+            int option = JOptionPane.showOptionDialog(null, "Deseja jogar contra CPU?", "Alerta", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
             if (option == 0) {
                 toServer.writeBoolean(true);
             } else {
                 toServer.writeBoolean(false);
             }
+            vscpu.setVisible(false);
         } catch (IOException e) {
             e.printStackTrace();
         }

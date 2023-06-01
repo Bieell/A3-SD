@@ -68,6 +68,7 @@ public class CPUSession implements Runnable {
                 }
 
                 int cpuMoves[] = getCPUMove();
+                System.out.println(cpuMoves[0] + " " + cpuMoves[1]);
                 result = checkWinner("O", cpuMoves[0], cpuMoves[1], CPU_MARK);
 
                 if (result == DRAW) {
@@ -88,8 +89,10 @@ public class CPUSession implements Runnable {
 
         if (isWon(mark)) {
             outputPlayerSocket.writeInt(playerWon);
+            if ("O".equals(mark)) {
+                sendMove(outputPlayerSocket, row, column);
+            }
             sendWinButtons(outputPlayerSocket);
-            if("O".equals(mark)) sendMove(outputPlayerSocket, row, column);
             if (rematch(mark) == true) {
                 for (int i = 0; i < board.length; i++) {
                     Arrays.fill(board[i], "");
@@ -100,14 +103,15 @@ public class CPUSession implements Runnable {
 
         } else if (isFull()) {
             outputPlayerSocket.writeInt(DRAW);
-            sendMove(outputPlayerSocket, row, column);
             for (int i = 0; i < board.length; i++) {
                 Arrays.fill(board[i], "");
             }
             return DRAW;
         } else {
-            outputPlayerSocket.writeInt(CONTINUE);
-            sendMove(outputPlayerSocket, row, column);
+            if (mark == "O") {
+                outputPlayerSocket.writeInt(CONTINUE);
+                sendMove(outputPlayerSocket, row, column);
+            }
             return CONTINUE;
         }
 
@@ -203,7 +207,6 @@ public class CPUSession implements Runnable {
             return true;
         } else if (markWinner.equals("O")) {
             inputPlayerSocket.readBoolean();
-            outputPlayerSocket.writeBoolean(true);
             return true;
         } else {
             return false;
@@ -213,27 +216,27 @@ public class CPUSession implements Runnable {
     private int[] getCPUMove() {
         int[] cpuMove = new int[2];
         if (!isFull()) {
-            int row = new Random().nextInt(2 - 0 + 1) + 0;
-            int column = new Random().nextInt(2 - 0 + 1) + 0;
+            int row;
+            int column;
             boolean moveNotFound = true;
             while (moveNotFound) {
-                moveNotFound = !checkFreeSpace(row, column);
                 row = new Random().nextInt(2 - 0 + 1) + 0;
                 column = new Random().nextInt(2 - 0 + 1) + 0;
-                if(!moveNotFound) {
+                moveNotFound = !checkFreeSpace(row, column);
+                if (!moveNotFound) {
                     cpuMove[0] = row;
                     cpuMove[1] = column;
                 }
             }
-            return cpuMove;          
+            return cpuMove;
         }
         cpuMove[0] = -1;
         cpuMove[1] = -2;
         return cpuMove;
     }
-    
+
     private boolean checkFreeSpace(int row, int column) {
-        if(board[row][column].equals("")) {
+        if (board[row][column].equals("")) {
             board[row][column] = "O";
             return true;
         }
