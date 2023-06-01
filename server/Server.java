@@ -30,8 +30,7 @@ public class Server {
     private String logTime;
 
     private ServerSocket serverSocket;
-    private Socket playerOne;
-    private Socket playerTwo;
+
 
     private final static int PLAYER_X = 0;
     private final static int PLAYER_O = 1;
@@ -80,6 +79,9 @@ public class Server {
                 boolean vsCPU = inputCPU.readBoolean();
                 if(vsCPU == true) {
                     System.out.println("Contra CPU");
+                    CPUSession cpuSession = new CPUSession(socketPlayerOne);
+                    Thread t = new Thread(cpuSession);
+                    t.start();
                     continue;
                 }
                 
@@ -92,6 +94,9 @@ public class Server {
                     System.out.println("Contra CPU");
                     new DataOutputStream(socketPlayerTwo.getOutputStream()).writeInt(PLAYER_X);
                     new DataOutputStream(socketPlayerOne.getOutputStream()).writeInt(-1);
+                    CPUSession cpuSession = new CPUSession(socketPlayerTwo);
+                    Thread t = new Thread(cpuSession);
+                    t.start();
                     continue;
                 }
 

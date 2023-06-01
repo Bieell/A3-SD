@@ -9,41 +9,34 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
  *
- * @author gabri
+ * @author GabrielAlves
  */
-public class CPUServer implements Runnable{
-    private String[] marks = {"X", "O"};
-    private final static int PLAYER_X = 0;
-    private final static int PLAYER_O = 1;
-    private final static int PLAYER_X_WON = 0;
-    private final static int PLAYER_O_WON = 1;
+public class CPUSession implements Runnable {
+
+    private final static int PLAYER_MARK = 0;
+    private final static int CPU_MARK = 1;
+    private final static int PLAYER_WON = 0;
+    private final static int CPU_WON = 1;
     private final static int DRAW = 2;
     private final static int CONTINUE = 3;
     private final static int REMATCH = 4;
 
-    private int currentPlayer;
-    private int playerXWins = 0;
-    private int playerOWins = 0;
     private String[][] board = new String[3][3];
     private int[][] winButtons = new int[3][2];
 
-    private Socket socketPlayerOne;
-    private Socket socketPlayerTwo;
+    private Socket playerSocket;
 
-    private DataInputStream inputPlayerOne;
-    private DataOutputStream outputPlayerOne;
+    private DataInputStream inputPlayerSocket;
+    private DataOutputStream outputPlayerSocket;
 
-    private DataInputStream inputPlayerTwo;
-    private DataOutputStream outputPlayerTwo;
-
-    public CPUServer(Socket socketPlayerOne, Socket socketPlayerTwo) {
-        this.socketPlayerOne = socketPlayerOne;
-        this.socketPlayerTwo = socketPlayerTwo;
+    public CPUSession(Socket playerSocket) {
+        this.playerSocket = playerSocket;
 
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
@@ -56,17 +49,17 @@ public class CPUServer implements Runnable{
     public void run() {
 
         try {
-            inputPlayerOne = new DataInputStream(socketPlayerOne.getInputStream());
-            outputPlayerOne = new DataOutputStream(socketPlayerOne.getOutputStream());
+            inputPlayerSocket = new DataInputStream(playerSocket.getInputStream());
+            outputPlayerSocket = new DataOutputStream(playerSocket.getOutputStream());
 
-            outputPlayerOne.writeInt(0);
+            outputPlayerSocket.writeInt(0);
 
             while (true) {
-                int row = inputPlayerOne.readInt();
-                int column = inputPlayerOne.readInt();
+                int row = inputPlayerSocket.readInt();
+                int column = inputPlayerSocket.readInt();
                 board[row][column] = "X";
 
-                int result = checkWinner("X", row, column, PLAYER_X, outputPlayerTwo);
+                int result = checkWinner("X", row, column, PLAYER_MARK);
                 if (result == DRAW) {
                     continue;
                 }
@@ -74,11 +67,9 @@ public class CPUServer implements Runnable{
                     continue;
                 }
 
-                row = inputPlayerTwo.readInt();
-                column = inputPlayerTwo.readInt();
-                board[row][column] = "O";
+                int cpuMoves[] = getCPUMove();
+                result = checkWinner("O", cpuMoves[0], cpuMoves[1], CPU_MARK);
 
-                result = checkWinner("O", row, column, PLAYER_O, outputPlayerOne);
                 if (result == DRAW) {
                     continue;
                 }
@@ -93,14 +84,12 @@ public class CPUServer implements Runnable{
 
     }
 
-    private int checkWinner(String mark, int row, int column, int playerWon, DataOutputStream outputPlayer) throws IOException {
+    private int checkWinner(String mark, int row, int column, int playerWon) throws IOException {
 
         if (isWon(mark)) {
-            outputPlayerOne.writeInt(playerWon);
-            outputPlayerTwo.writeInt(playerWon);
-            sendMove(outputPlayer, row, column);
-            sendWinButtons(outputPlayerOne);
-            sendWinButtons(outputPlayerTwo);
+            outputPlayerSocket.writeInt(playerWon);
+            sendWinButtons(outputPlayerSocket);
+            if("O".equals(mark)) sendMove(outputPlayerSocket, row, column);
             if (rematch(mark) == true) {
                 for (int i = 0; i < board.length; i++) {
                     Arrays.fill(board[i], "");
@@ -110,16 +99,15 @@ public class CPUServer implements Runnable{
             return playerWon;
 
         } else if (isFull()) {
-            outputPlayerOne.writeInt(DRAW);
-            outputPlayerTwo.writeInt(DRAW);
-            sendMove(outputPlayer, row, column);
+            outputPlayerSocket.writeInt(DRAW);
+            sendMove(outputPlayerSocket, row, column);
             for (int i = 0; i < board.length; i++) {
                 Arrays.fill(board[i], "");
             }
             return DRAW;
         } else {
-            outputPlayer.writeInt(CONTINUE);
-            sendMove(outputPlayer, row, column);
+            outputPlayerSocket.writeInt(CONTINUE);
+            sendMove(outputPlayerSocket, row, column);
             return CONTINUE;
         }
 
@@ -210,14 +198,46 @@ public class CPUServer implements Runnable{
     }
 
     private boolean rematch(String markWinner) throws IOException {
-        if (markWinner == marks[PLAYER_X]) {
-            inputPlayerTwo.readBoolean();
-            outputPlayerOne.writeBoolean(true);
+        if (markWinner.equals("X")) {
+            outputPlayerSocket.writeBoolean(true);
             return true;
-        } else if (markWinner == marks[PLAYER_O]) {
-            inputPlayerOne.readBoolean();
-            outputPlayerTwo.writeBoolean(true);
+        } else if (markWinner.equals("O")) {
+            inputPlayerSocket.readBoolean();
+            outputPlayerSocket.writeBoolean(true);
             return true;
-        } else return false;
+        } else {
+            return false;
+        }
     }
+
+    private int[] getCPUMove() {
+        int[] cpuMove = new int[2];
+        if (!isFull()) {
+            int row = new Random().nextInt(2 - 0 + 1) + 0;
+            int column = new Random().nextInt(2 - 0 + 1) + 0;
+            boolean moveNotFound = true;
+            while (moveNotFound) {
+                moveNotFound = !checkFreeSpace(row, column);
+                row = new Random().nextInt(2 - 0 + 1) + 0;
+                column = new Random().nextInt(2 - 0 + 1) + 0;
+                if(!moveNotFound) {
+                    cpuMove[0] = row;
+                    cpuMove[1] = column;
+                }
+            }
+            return cpuMove;          
+        }
+        cpuMove[0] = -1;
+        cpuMove[1] = -2;
+        return cpuMove;
+    }
+    
+    private boolean checkFreeSpace(int row, int column) {
+        if(board[row][column].equals("")) {
+            board[row][column] = "O";
+            return true;
+        }
+        return false;
+    }
+
 }
